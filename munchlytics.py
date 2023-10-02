@@ -120,14 +120,14 @@ def printTopData(poke,category,count=10):
         use = data[poke][category][key]/rawCount*100
         use = round(use,3)
         if key == "":
-            key = "none"
-        if category=="Moves" and key!="none":
+            key = "nothing"
+        if category=="Moves" and key!="nothing":
             key = movesData[key]["name"]
 
-        if category=="Abilities" and key!="none":
+        if category=="Abilities" and key!="nothing":
             key = abilitiesData[key]["name"]
 
-        if category=="Items" and key!="none":
+        if category=="Items" and key!="nothing":
             key = itemData[key]["name"]
         
         print(f"{Fore.CYAN}{key}{Fore.RESET} : {Fore.YELLOW}{use}%{Fore.RESET}")
