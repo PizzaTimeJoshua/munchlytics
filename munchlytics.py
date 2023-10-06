@@ -111,22 +111,39 @@ def loadStats(meta,month,year,rating,tryLastMonth=True):
     pokemon_ordered = sorted(pokemon, key=lambda x: data[x]["usage"], reverse=True)
 
 def getStats(poke,category):
-    dataPokemon = data[poke][category]
+    if category=="Natures":
+        dataPokemon = {}
+        for spread in data[poke]["Spreads"]:
+            nature = spread.split(':')[0]
+            weight = data[poke]["Spreads"][spread]
+            dataPokemon[nature] = dataPokemon.get(nature,0) + weight
+
+    else:
+        dataPokemon = data[poke][category]
+    if category=="Checks and Counters":
+        filtered_counters = {key: value for key, value in dataPokemon.items() if (value[2] < 0.01 and value[1] > 0.5)}
+        catSorted = sorted(filtered_counters.keys(), key=lambda x: filtered_counters[x][1], reverse=True)
+        return catSorted, dataPokemon
     catSorted = sorted(dataPokemon.keys(), key=lambda x: dataPokemon[x], reverse=True)
-    return catSorted
+    return catSorted, dataPokemon
 
 def printTopData(poke,category,count=10):
-    sorted = getStats(poke,category)
-    print(f"{Fore.GREEN}---Top {count} {category} for {poke}---{Fore.RESET}")
-
+    sorted , dataPokemon = getStats(poke,category)
     totalCount = sum(list(data[poke]["Abilities"].values()))
-
-    for i in range(count):
+    totalVals = min(len(sorted),count)
+    if totalVals==0:
+        # If No Data, don't show (Usually for Checks and Counters)
+        return
+    print(f"{Fore.GREEN}---Top {totalVals} {category} for {poke}---{Fore.RESET}")
+    for i in range(totalVals):
         try:
             key = sorted[i]
         except IndexError:
             return
-        use = data[poke][category][key]/totalCount*100
+        if category=="Checks and Counters":
+            use = dataPokemon[key][1]*100
+        else:
+            use = dataPokemon[key]/totalCount*100
         use = round(use,3)
         if key == "":
             key = "nothing"
@@ -170,7 +187,11 @@ def allDataPokemon(poke):
     print("")
     printTopData(pokeSearch,"Spreads")
     print("")
+    printTopData(pokeSearch,"Natures",5)
+    print("")
     printTopData(pokeSearch,"Teammates")
+    print("")
+    printTopData(pokeSearch,"Checks and Counters")
 
 def showTopPokemon(top=100):
     print(f"{Fore.CYAN}Top {top} Pokemon of {Fore.YELLOW}{meta}{Fore.CYAN} with a threshold of {Fore.YELLOW}{rating}{Fore.RESET}")
